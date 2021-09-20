@@ -1,0 +1,52 @@
+#!/bin/bash
+# Nombre del trabajo
+#PBS -N 6-CosmologicalParametersf_QT
+#
+# Archivos de salida
+#PBS -o model.out
+#PBS -e model.err
+#
+# Cola de ejecucion (-q cola)
+# 
+#PBS -q mpi
+# Recursos solicitados (nodos, cpus, mem, etc)
+#PBS -l nodes=1:ppn=16
+
+#PBS -m abe
+#PBS -M antonio.najera@correo.nucleares.unam.mx
+
+# Cargar y/o definir entorno (modulos, variables de ambiente)
+
+. /etc/profile.d/modules.sh
+
+module load gnu/7.2
+module load openmpi/4.0.3/gnu
+module load anaconda3/2020.02
+
+# Cambiar al directorio actual
+cd /storage/cosmonag/antonio/Pantheon+Chronometers/model6_TQ
+
+# Informacion del JOB
+echo ==============================
+echo Ejecutandose en: `hostname`
+echo Fecha: `date`
+echo Directorio: `pwd`
+echo Recursos asignados:
+echo 	`cat $PBS_NODEFILE`
+NPROCS=`wc -l < $PBS_NODEFILE`
+echo Total: $NPROCS cpus
+echo ==============================
+cat $PBS_NODEFILE > $HOME/nodos
+echo ==============================
+echo 		SALIDA
+echo ==============================
+
+export OMP_NUM_THREADS=1
+export HDF5_USE_FILE_LOCKING='FALSE'
+
+mpirun -np 16 python model.py
+
+qstat -f $PBS_JOBID | grep resources_used
+
+# Termina trabajo
+echo ==============================
